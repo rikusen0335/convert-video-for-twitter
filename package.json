@@ -15,11 +15,13 @@
     "@ffmpeg/core": "^0.11.0",
     "@ffmpeg/ffmpeg": "^0.11.5",
     "framer-motion": "^7.3.5",
+    "lodash": "^4.17.21",
     "next": "12.3.0",
     "next-auth": "^4.10.3",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "twitter-api-v2": "^1.12.7"
+    "twitter-api-v2": "^1.12.7",
+    "twitter-lite": "^1.1.0"
   },
   "devDependencies": {
     "@types/node": "18.7.18",

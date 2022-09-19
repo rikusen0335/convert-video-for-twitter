@@ -1,13 +1,18 @@
+import { getToken } from "next-auth/jwt";
 import { TwitterApi } from "twitter-api-v2";
 
 export default function useTwitter() {
-  const appOnlyClient = new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
-
-  const postTweet = async () => await appOnlyClient.v2.tweet('twitter-api-v2 is awesome!', {
-      poll: { duration_minutes: 120, options: ['Absolutely', 'For sure!'] },
-  });
+  const login = async () => {
+    const client = new TwitterApi({
+      appKey: process.env.TWITTER_CONSUMER_KEY!!,
+      appSecret: process.env.TWITTER_CONSUMER_SECRET!!,
+      accessToken: token.credentials.authToken,
+      accessSecret: "",
+    });
+    const { url, codeVerifier, state } = client.generateOAuth2AuthLink("/api/auth/twitter/callback", { scope: ['tweet.read', 'users.read'] });
+  }
 
   return {
-      postTweet
+    login,
   };
 }
