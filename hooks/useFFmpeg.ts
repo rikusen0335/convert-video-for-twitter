@@ -13,10 +13,7 @@ export default function useFFmpeg() {
     const ffmpeg = createFFmpeg({
       corePath: 'http://localhost:3000/ffmpeg-core.js',
       log: true,
-      progress: (e: FFmpegProgression) => {
-        console.log(e)
-        setProgress(state => ({...state, ...e}))
-      },
+      progress: (e: FFmpegProgression) => setProgress(state => ({...state, ...e})),
     });
 
     await ffmpeg.load();

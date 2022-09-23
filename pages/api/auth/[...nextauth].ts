@@ -6,13 +6,12 @@ import TwitterProvider from "next-auth/providers/twitter";
 const options: NextAuthOptions = {
   providers: [
     TwitterProvider({
-      clientId: process.env.TWITTER_CLIENT_ID!!,
-      clientSecret: process.env.TWITTER_CLIENT_SECRET!!,
-      version: "2.0",
+      clientId: process.env.TWITTER_CONSUMER_KEY!!,
+      clientSecret: process.env.TWITTER_CONSUMER_SECRET!!,
+      // version: "2.0",
       authorization: {
-        url: "https://twitter.com/i/oauth2/authorize",
         params: {
-          scope: "users.read tweet.read tweet.write offline.access",
+          scope: "users.read tweet.read tweet.write",
         },
       },
     }),
@@ -24,8 +23,8 @@ const options: NextAuthOptions = {
     async jwt({ token, user, account }) {
       if (account) {
         token[account.provider] = {
-          accessToken: account.access_token,
-          refreshToken: account.refresh_token,
+          accessToken: account.oauth_token,
+          refreshToken: account.oauth_token_secret,
         }
       }
 
@@ -36,5 +35,7 @@ const options: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 }
 
-export default (req: NextApiRequest, res: NextApiResponse) =>
-  NextAuth(req, res, options)
+const nextAuth = (req: NextApiRequest, res: NextApiResponse) =>
+NextAuth(req, res, options)
+
+export default nextAuth

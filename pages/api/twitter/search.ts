@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { getToken } from 'next-auth/jwt'
 
 import { TwitterApi } from 'twitter-api-v2'
+import Twitter from 'twitter-lite'
 
 const fuga = async (req: NextApiRequest, res: NextApiResponse) => {
   const token = await getToken({
@@ -13,27 +14,34 @@ const fuga = async (req: NextApiRequest, res: NextApiResponse) => {
     status: 'token is null',
   })
 
-  const userClient = new TwitterApi({
-    appKey: process.env.TWITTER_CLIENT_ID,
-    appSecret: process.env.TWITTER_CLIENT_SECRET,
-    accessToken: token.twitter.accessToken,
-    accessSecret: token.twitter.refreshToken,
-  })
+  const apiSecrets = {
+    subdomain: 'api',
+    consumer_key: process.env.TWITTER_CONSUMER_KEY,
+    consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+    access_token_key: token.twitter.accessToken,
+    access_token_secret: token.twitter.refreshToken
+  }
 
-  const rwClient = userClient.readWrite
+  console.log(apiSecrets)
+
+  const client = new Twitter(apiSecrets);
+
+  const body = JSON.parse(req.body);
+  const { query } = body;
 
   try {
-    console.log(await rwClient.currentUserV2())
-    const { id } = await rwClient.v1.tweet('twitter-api-v2 is awesome!');
-
+    const results = await client.get('search/tweets', {
+      q: query
+    });
     return res.status(200).json({
       status: 'Ok',
-      data: id,
-    })
-  } catch (e: unknown) {
+      data: results.statuses
+    });
+  } catch(e) {
+    console.log(e)
     return res.status(400).json({
-      status: (e as Error).message,
-    })
+      status: e.message
+    });
   }
 }
 

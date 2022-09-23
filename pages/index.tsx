@@ -21,16 +21,42 @@ const Home: NextPage = ({ token }) => {
   const { status, data } = useSession()
 
   const [statuses, setStatuses] = useState<Twit[]>([])
-  const session = useSession()
-  const router = useRouter()
 
-  async function handleOnSearchSubmit() {
-    const results = await fetch('/api/twitter/search', {
-      method: 'POST'
+  async function handleTweet() {
+    if (!videoURL) return
+
+    const file = await fetch(videoURL).then(r => r.blob());
+
+    const body = new FormData()
+    body.append("content", "APIテスト")
+    body.append("file", file)
+
+    const results = await fetch('/api/twitter/tweet', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'multipart/form-data'
+      },
+      body: body,
     }).then((res) => res.json())
 
     setStatuses(results.data)
   }
+
+  async function handleSearch() {
+    const query = 'りくせん';
+
+    const results = await fetch('/api/twitter/search', {
+      method: 'POST',
+      body: JSON.stringify({
+        query
+      })
+    }).then(res => res.json());
+
+    setStatuses(results.data);
+    console.log(results)
+  }
+
   return (
     <div className={styles.container}>
       <Head>
@@ -47,13 +73,15 @@ const Home: NextPage = ({ token }) => {
 
         <VStack mb={12}>
           {status !== "authenticated" && <VStack>
-            <Text>Twitterに投稿したい場合は、動画をダウンロードするか、ログインしてください</Text>
-            <Button onClick={() => signIn("twitter")}>Twitterにログインする</Button>
+            <Text>Twitterに投稿したい場合は、動画をダウンロードするか、ログインしてください。</Text>
+            <Text><b>ログインしてから</b>動画を変換すると、スムーズにツイートできます。</Text>
+            <Button colorScheme="blue" onClick={() => signIn("twitter")}>Twitterにログインする</Button>
           </VStack>}
           {status === "authenticated" && <VStack>
             <p>{data.user?.name} としてログイン中</p>
             <Button onClick={() => signOut()}>Twitterからログアウト</Button>
-            {videoURL && <Button colorScheme="blue" onClick={() => handleOnSearchSubmit()}>現在の動画をツイートする</Button>}
+            {videoURL && <Button colorScheme="blue" onClick={() => handleSearch()}>サーチ</Button>}
+            {videoURL && <Button colorScheme="blue" onClick={() => handleTweet()}>現在の動画をツイートする</Button>}
           </VStack>}
         </VStack>
 
@@ -65,15 +93,15 @@ const Home: NextPage = ({ token }) => {
           onChange={handleFileChange}
           ref={fileRef}
         />
-        <Button colorScheme="green" onClick={() => fileRef.current?.click()}>動画ファイルを選択</Button>
+        <Button mb={8} colorScheme="green" onClick={() => fileRef.current?.click()}>動画ファイルを選択</Button>
         {/* <Button onClick={() => postTweet()}>ツイートする</Button> */}
 
         {progress &&
           <HStack gap={12}>
             <CircularProgress value={Math.round(progress?.ratio * 100)} size='230px'>
               <CircularProgressLabel>
-                <Heading fontSize="xl">読み込み率</Heading>
-                <Heading fontSize="3xl">{Math.round(progress?.ratio * 100)}{progress?.ratio && " %"}</Heading>
+                <Heading fontSize="xl">変換率</Heading>
+                <Heading fontSize="3xl">{Math.round(progress?.ratio ?? 0 * 100)} %</Heading>
               </CircularProgressLabel>
             </CircularProgress>
             <CircularProgress color='green.300' value={100} size='230px'>
@@ -84,7 +112,7 @@ const Home: NextPage = ({ token }) => {
             </CircularProgress>
             <CircularProgress size='230px' isIndeterminate>
               <CircularProgressLabel>
-                <Heading fontSize="xl">読込済み時間</Heading>
+                <Heading fontSize="xl">変換済み時間</Heading>
                 <Heading fontSize="3xl">{progress?.time}{progress?.time && "秒"}</Heading>
               </CircularProgressLabel>
             </CircularProgress>
