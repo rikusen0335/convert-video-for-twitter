@@ -1,14 +1,11 @@
-import { Button, CircularProgress, CircularProgressLabel, Heading, HStack, Input } from '@chakra-ui/react'
-import type { GetServerSideProps, GetStaticProps, NextPage } from 'next'
+import { Box, Button, CircularProgress, CircularProgressLabel, Flex, Heading, HStack, Input, Text, VStack } from '@chakra-ui/react'
+import type { NextPage } from 'next'
 import Head from 'next/head'
-import Image from 'next/image'
-import Script from 'next/script'
 import { useEffect, useRef, useState } from 'react'
 import useFFmpeg from '../hooks/useFFmpeg'
 import { signIn, signOut, useSession } from "next-auth/react"
 import styles from '../styles/Home.module.css'
 
-import fs from 'fs'
 import { getToken } from 'next-auth/jwt'
 import { useRouter } from 'next/router'
 
@@ -43,10 +40,23 @@ const Home: NextPage = ({ token }) => {
       </Head>
 
       <main className={styles.main}>
-        {status === "authenticated" && <p>{data.user?.name} としてログイン中</p>}
-        {status !== "authenticated" && <Button onClick={() => signIn("twitter")}>Sign in with Twitter</Button>}
-        {status === "authenticated" && <Button onClick={() => signOut()}>Signout</Button>}
-        <Button onClick={() => handleOnSearchSubmit()}>Tweet</Button>
+        <VStack mb={10}>
+          <Heading>Twitter用動画コンバーター</Heading>
+          <Text>このサイトは、サーバーのリソースを使う代わりに、あなたのブラウザ上でエンコードを行います。</Text>
+        </VStack>
+
+        <VStack mb={12}>
+          {status !== "authenticated" && <VStack>
+            <Text>Twitterに投稿したい場合は、動画をダウンロードするか、ログインしてください</Text>
+            <Button onClick={() => signIn("twitter")}>Twitterにログインする</Button>
+          </VStack>}
+          {status === "authenticated" && <VStack>
+            <p>{data.user?.name} としてログイン中</p>
+            <Button onClick={() => signOut()}>Twitterからログアウト</Button>
+            {videoURL && <Button colorScheme="blue" onClick={() => handleOnSearchSubmit()}>現在の動画をツイートする</Button>}
+          </VStack>}
+        </VStack>
+
         <input
           type="file"
           name="file"
@@ -55,28 +65,41 @@ const Home: NextPage = ({ token }) => {
           onChange={handleFileChange}
           ref={fileRef}
         />
-        <Button onClick={() => fileRef.current?.click()}>動画ファイルを選択</Button>
+        <Button colorScheme="green" onClick={() => fileRef.current?.click()}>動画ファイルを選択</Button>
         {/* <Button onClick={() => postTweet()}>ツイートする</Button> */}
-        <HStack>
-          <CircularProgress value={Math.round(progress?.ratio * 100)} size='200px'>
-            <CircularProgressLabel>
-              <Heading fontSize="2xl">読み込み率</Heading>
-              <Heading fontSize="2xl">{Math.round(progress?.ratio * 100)}{progress?.ratio && " %"}</Heading>
-            </CircularProgressLabel>
-          </CircularProgress>
-          <CircularProgress color='green.300' value={100} size='200px'>
-            <CircularProgressLabel>
-              <Heading fontSize="2xl">動画の長さ</Heading>
-              <Heading>{progress?.duration}{progress?.duration && "秒"}</Heading>
-            </CircularProgressLabel>
-          </CircularProgress>
-          <CircularProgress size='200px' isIndeterminate>
-            <CircularProgressLabel>
-              <Heading fontSize="2xl">読込済み時間</Heading>
-              <Heading>{progress?.time}{progress?.time && "秒"}</Heading>
-            </CircularProgressLabel>
-          </CircularProgress>
-        </HStack>
+
+        {progress &&
+          <HStack gap={12}>
+            <CircularProgress value={Math.round(progress?.ratio * 100)} size='230px'>
+              <CircularProgressLabel>
+                <Heading fontSize="xl">読み込み率</Heading>
+                <Heading fontSize="3xl">{Math.round(progress?.ratio * 100)}{progress?.ratio && " %"}</Heading>
+              </CircularProgressLabel>
+            </CircularProgress>
+            <CircularProgress color='green.300' value={100} size='230px'>
+              <CircularProgressLabel>
+                <Heading fontSize="xl">動画の長さ</Heading>
+                <Heading  fontSize="3xl">{progress?.duration}{progress?.duration && "秒"}</Heading>
+              </CircularProgressLabel>
+            </CircularProgress>
+            <CircularProgress size='230px' isIndeterminate>
+              <CircularProgressLabel>
+                <Heading fontSize="xl">読込済み時間</Heading>
+                <Heading fontSize="3xl">{progress?.time}{progress?.time && "秒"}</Heading>
+              </CircularProgressLabel>
+            </CircularProgress>
+          </HStack>
+        }
+
+          {videoURL && <Flex flexDirection="column" alignItems="center" justifyContent="center" mt={12}>
+            <Heading fontSize="xl" mb={3}>プレビュー</Heading>
+            <video
+              src={videoURL}
+              width={"1024px"}
+              height={"576px"}
+              controls
+            />
+          </Flex>}
       </main>
     </div>
   )
