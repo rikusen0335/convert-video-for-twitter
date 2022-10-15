@@ -1,6 +1,8 @@
 import { StatHelpText } from "@chakra-ui/react";
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
 import { useState } from "react";
+import { getLocationOrigin } from "../libs/utils";
+
 import type { FFmpegProgression } from "../types";
 
 export default function useFFmpeg() {
@@ -8,10 +10,12 @@ export default function useFFmpeg() {
   const [videoURL, setVideoURL] = useState<string | null>(null)
 
   const transcode = async (file: File) => {
+    if (!file) return;
+
     const { name } = file;
 
     const ffmpeg = createFFmpeg({
-      corePath: 'http://localhost:3000/ffmpeg-core.js',
+      corePath: `${getLocationOrigin()}/ffmpeg-core.js`,
       log: true,
       progress: (e: FFmpegProgression) => setProgress(state => ({...state, ...e})),
     });
